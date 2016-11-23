@@ -124,7 +124,7 @@ function printTable(json) {
         return [Math.min(min, elem.from), Math.max(max, elem.to)];
     }, [24, 0]);
 
-    var days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
+    var days = ['', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
 
     var write = function(str)
     {
@@ -137,23 +137,20 @@ function printTable(json) {
     console.log("\\usepackage[T1]{fontenc}");
     console.log("\\begin{document}");
     write("\\begin{tabular}{");
-    console.log('|l|' + Array(days.length+1).join('l|') + "} \\hline");
+    console.log('|l|' + Array(days.length+1).join('c|') + "} \\hline");
 
-    days.forEach(function(day)
-    {
-        write(" & " + day);
-    });
+    console.log(days.join(" & "));
     console.log(" \\\\ \\hline");
     for (var i = first; i < last; i++) 
     {
         // Fill in hour format
         obj[i] = (obj[i] || {});
-        write(('0' + i).substr(-2) + ':00');
+        obj[i][0] = ('0' + i).substr(-2) + ':00';
         // Push the hour + lecture row
-        days.forEach(function(_, j)
+        console.log(days.map(function(_, j)
         {
-            write(" & \\makecell[l]{" + (obj[i][j+1] || '').replace(/\n/g,'\\\\ ') + "}");
-        });
+            return "\\makecell[l]{" + (obj[i][j] || '').replace(/\n/g,'\\\\ ') + "}";
+        }).join(" & "));
         console.log(" \\\\ \\hline");
     };
 
