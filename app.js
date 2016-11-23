@@ -113,8 +113,6 @@ function fetchSchedule(url, callback) {
 
 function printTable(json) {
 
-    var table = new Table(prefs.table_options);
-
     // Generate sparse object representation, and find first and last lecture time
     var obj = {};
     var [first, last] = json.reduce(function([min,max],elem)
@@ -126,23 +124,41 @@ function printTable(json) {
         return [Math.min(min, elem.from), Math.max(max, elem.to)];
     }, [24, 0]);
 
-    var days = ['', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
-    table.push(days);
+    var days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
 
-    //Insert rows
+    var write = function(str)
+    {
+        process.stdout.write(str);
+    }
+
+    console.log("\\documentclass[crop]{standalone}");
+    console.log("\\usepackage{makecell}");
+    console.log("\\usepackage[utf8]{inputenc}");
+    console.log("\\usepackage[T1]{fontenc}");
+    console.log("\\begin{document}");
+    write("\\begin{tabular}{");
+    console.log('|l|' + Array(days.length+1).join('l|') + "} \\hline");
+
+    days.forEach(function(day)
+    {
+        write(" & " + day);
+    });
+    console.log(" \\\\ \\hline");
     for (var i = first; i < last; i++) 
     {
         // Fill in hour format
         obj[i] = (obj[i] || {});
-        obj[i][0] = ('0' + i).substr(-2) + ':00';
+        write(('0' + i).substr(-2) + ':00');
         // Push the hour + lecture row
-        table.push(days.map(function(_, j)
+        days.forEach(function(_, j)
         {
-            return (obj[i][j] || '');
-        }));
+            write(" & \\makecell[l]{" + (obj[i][j+1] || '').replace(/\n/g,'\\\\ ') + "}");
+        });
+        console.log(" \\\\ \\hline");
     };
 
-    console.log(table.toString());
+    console.log("\\end{tabular}");
+    console.log("\\end{document}");
 }
 
 function getSource(name) {
